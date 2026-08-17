@@ -1,0 +1,126 @@
+'use strict';
+
+const account1 = {
+  owner: 'Jonas Schmedtmann',
+  movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
+  interestRate: 1.2,
+  pin: 1111,
+};
+
+const account2 = {
+  owner: 'Jessica Davis',
+  movements: [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
+  interestRate: 1.5,
+  pin: 2222,
+};
+
+const account3 = {
+  owner: 'Steven Thomas Williams',
+  movements: [200, -200, 340, -300, -20, 50, 400, -460],
+  interestRate: 0.7,
+  pin: 3333,
+};
+
+const account4 = {
+  owner: 'Sarah Smith',
+  movements: [430, 1000, 700, 50, 90],
+  interestRate: 1,
+  pin: 4444,
+};
+
+const accounts = [account1, account2, account3, account4];
+
+const labelWelcome = document.querySelector('.welcome');
+const labelDate = document.querySelector('.date');
+const labelBalance = document.querySelector('.balance__value');
+const labelSumIn = document.querySelector('.summary__value--in');
+const labelSumOut = document.querySelector('.summary__value--out');
+const labelSumInterest = document.querySelector('.summary__value--interest');
+const labelTimer = document.querySelector('.timer');
+
+const containerApp = document.querySelector('.app');
+const containerMovements = document.querySelector('.movements');
+
+const btnLogin = document.querySelector('.login__btn');
+const btnTransfer = document.querySelector('.form__btn--transfer');
+const btnLoan = document.querySelector('.form__btn--loan');
+const btnClose = document.querySelector('.form__btn--close');
+const btnSort = document.querySelector('.btn--sort');
+
+let inputLoginUsername = document.querySelector('.login__input--user');
+let inputLoginPin = document.querySelector('.login__input--pin');
+const inputTransferTo = document.querySelector('.form__input--to');
+const inputTransferAmount = document.querySelector('.form__input--amount');
+const inputLoanAmount = document.querySelector('.form__input--loan-amount');
+const inputCloseUsername = document.querySelector('.form__input--user');
+const inputClosePin = document.querySelector('.form__input--pin');
+
+// -----------------------------
+
+const addTransaction = function (transaction) {
+  containerMovements.innerHTML = '';
+  transaction.forEach((value, i) => {
+    const transactionType = value > 0 ? 'deposit' : 'withdrawal';
+    const transcationElement = `<div class="movements__row">
+          <div class="movements__type movements__type--${transactionType}">${i + 1} ${transactionType}</div>
+          <div class="movements__date">3 days ago</div>
+          <div class="movements__value">${value}€</div>
+        </div>`;
+    containerMovements.insertAdjacentHTML('afterbegin', transcationElement);
+  });
+};
+
+const loginAccount = function (Accounts) {
+  Accounts.forEach(Account => {
+    Account.userName = Account.owner
+      .toLowerCase()
+      .split(' ')
+      .map(e => e.slice(0, 1))
+      .join('');
+  });
+};
+loginAccount(accounts);
+console.log(accounts);
+
+const accountBalance = function (Amount) {
+  labelBalance.innerHTML = '';
+  const balAmt = Amount.reduce((acc, val) => acc + val, 0);
+  labelBalance.textContent = `${balAmt}€`;
+};
+
+// const max = account1.movements.reduce(
+//   (acc, val) => (acc > val ? acc : val),
+//   account1.movements[0],
+// );
+// console.log(max);
+
+function accountSummary(account) {
+  const deposit = account.movements
+    .filter(val => val > 0)
+    .reduce((acc, val) => acc + val, 0);
+  const withdrawl = account.movements
+    .filter(val => val < 0)
+    .reduce((acc, val) => acc + val, 0);
+  const intrestAmount = account.movements
+    .filter(val => val > 0)
+    .map(val => (val * account.interestRate) / 100)
+    .reduce((acc, val) => acc + val, 0);
+  labelSumIn.textContent = `${deposit}€`;
+  labelSumOut.textContent = `${Math.abs(withdrawl)}€`;
+  labelSumInterest.textContent = `${intrestAmount.toFixed(2)}€`;
+}
+
+btnLogin.addEventListener('click', e => {
+  e.preventDefault();
+  let selectedAccount = accounts.find(
+    account => account.userName === inputLoginUsername.value,
+  );
+  if (selectedAccount?.pin === Number(inputLoginPin.value)) {
+    containerApp.style.opacity = '100';
+    labelWelcome.textContent = `Welcome ${selectedAccount.owner}`;
+    addTransaction(selectedAccount.movements);
+    accountBalance(selectedAccount.movements);
+    accountSummary(selectedAccount);
+    inputLoginUsername.value = inputLoginPin.value = '';
+  }
+});
