@@ -116,6 +116,7 @@ function updateUI(account) {
 
 //Closure/Pointing to current user logged in object
 let selectedAccount = null;
+let currentAcc = null;
 
 ////The login functionality
 btnLogin.addEventListener('click', e => {
@@ -123,11 +124,13 @@ btnLogin.addEventListener('click', e => {
   selectedAccount = accounts.find(
     account => account.userName === inputLoginUsername.value,
   );
-  if (selectedAccount?.pin === Number(inputLoginPin.value)) {
+  if (selectedAccount && selectedAccount?.pin === Number(inputLoginPin.value)) {
     containerApp.style.opacity = '100';
     labelWelcome.textContent = `Welcome ${selectedAccount.owner}`;
     inputLoginUsername.value = inputLoginPin.value = '';
     updateUI(selectedAccount);
+  } else {
+    alert(`Either username or password is incorrect!!!`);
   }
   inputLoginUsername.value = inputLoginPin.value = '';
 });
@@ -147,11 +150,17 @@ btnTransfer.addEventListener('click', e => {
   ) {
     selectedAccount.movements.push(-amountTransfered);
     transferTo.movements.push(amountTransfered);
+    alert(`Amount transfer successful🥳`);
+  } else if (transferTo?.userName === selectedAccount.userName) {
+    alert(`Can't transfer to same account🤣`);
+  } else {
+    alert(`Entered user doesn't exist❌`);
   }
   updateUI(selectedAccount);
   inputTransferAmount.value = inputTransferTo.value = '';
 });
 
+// Closing account functionality
 btnClose.addEventListener('click', e => {
   e.preventDefault();
   if (
@@ -166,5 +175,40 @@ btnClose.addEventListener('click', e => {
       containerApp.style.opacity = '0';
       inputCloseUsername.value = inputClosePin.value = '';
     }
+  } else {
+    alert(
+      `Either username or password is incorrect. We will not be able to close your account!!!`,
+    );
+  }
+});
+
+// Loan request functionality
+btnLoan.addEventListener('click', e => {
+  e.preventDefault();
+  const loanAmt = Number(inputLoanAmount.value);
+  if (loanAmt > 0 && currentAcc.movements.some(val => val > 0.1 * loanAmt)) {
+    selectedAccount.movements.push(loanAmt);
+    updateUI(selectedAccount);
+  } else {
+    alert(
+      'We will not be providing you the loan based on the previous transactions🙃',
+    );
+  }
+  inputLoanAmount.value = '';
+});
+
+let sorted = false;
+// sorting functionaliy
+btnSort.addEventListener('click', e => {
+  e.preventDefault();
+  if (sorted === false) {
+    const newMovements = selectedAccount.movements
+      .slice()
+      .sort((a, b) => a - b);
+    addTransaction(newMovements);
+    sorted = true;
+  } else {
+    addTransaction(selectedAccount.movements);
+    sorted = false;
   }
 });
