@@ -129,6 +129,7 @@ btnLogin.addEventListener('click', e => {
     inputLoginUsername.value = inputLoginPin.value = '';
     updateUI(selectedAccount);
   }
+  inputLoginUsername.value = inputLoginPin.value = '';
 });
 
 //Transfer functinality
@@ -149,4 +150,21 @@ btnTransfer.addEventListener('click', e => {
   }
   updateUI(selectedAccount);
   inputTransferAmount.value = inputTransferTo.value = '';
+});
+
+btnClose.addEventListener('click', e => {
+  e.preventDefault();
+  if (
+    selectedAccount?.pin === Number(inputClosePin.value) &&
+    selectedAccount?.userName === inputCloseUsername.value
+  ) {
+    const indexDelete = accounts.findIndex(
+      account => account.userName === selectedAccount.userName,
+    );
+    if (indexDelete !== -1) {
+      accounts.splice(indexDelete, 1);
+      containerApp.style.opacity = '0';
+      inputCloseUsername.value = inputClosePin.value = '';
+    }
+  }
 });
