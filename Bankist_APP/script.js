@@ -47,8 +47,8 @@ const btnLoan = document.querySelector('.form__btn--loan');
 const btnClose = document.querySelector('.form__btn--close');
 const btnSort = document.querySelector('.btn--sort');
 
-let inputLoginUsername = document.querySelector('.login__input--user');
-let inputLoginPin = document.querySelector('.login__input--pin');
+const inputLoginUsername = document.querySelector('.login__input--user');
+const inputLoginPin = document.querySelector('.login__input--pin');
 const inputTransferTo = document.querySelector('.form__input--to');
 const inputTransferAmount = document.querySelector('.form__input--amount');
 const inputLoanAmount = document.querySelector('.form__input--loan-amount');
@@ -57,6 +57,7 @@ const inputClosePin = document.querySelector('.form__input--pin');
 
 // -----------------------------
 
+//Update the transactions
 const addTransaction = function (transaction) {
   containerMovements.innerHTML = '';
   transaction.forEach((value, i) => {
@@ -70,6 +71,7 @@ const addTransaction = function (transaction) {
   });
 };
 
+//Add the owners username
 const loginAccount = function (Accounts) {
   Accounts.forEach(Account => {
     Account.userName = Account.owner
@@ -80,20 +82,15 @@ const loginAccount = function (Accounts) {
   });
 };
 loginAccount(accounts);
-console.log(accounts);
 
-const accountBalance = function (Amount) {
+//Updates the balance of the accounts
+const accountBalance = function (account) {
   labelBalance.innerHTML = '';
-  const balAmt = Amount.reduce((acc, val) => acc + val, 0);
-  labelBalance.textContent = `${balAmt}€`;
+  account.balAmt = account.movements.reduce((acc, val) => acc + val, 0);
+  labelBalance.textContent = `${account.balAmt}€`;
 };
 
-// const max = account1.movements.reduce(
-//   (acc, val) => (acc > val ? acc : val),
-//   account1.movements[0],
-// );
-// console.log(max);
-
+//Updates the Deposit,Withdrawl and Intrest fields
 function accountSummary(account) {
   const deposit = account.movements
     .filter(val => val > 0)
@@ -110,17 +107,46 @@ function accountSummary(account) {
   labelSumInterest.textContent = `${intrestAmount.toFixed(2)}€`;
 }
 
+//Updating UI
+function updateUI(account) {
+  addTransaction(account.movements);
+  accountBalance(account);
+  accountSummary(account);
+}
+
+//Closure/Pointing to current user logged in object
+let selectedAccount = null;
+
+////The login functionality
 btnLogin.addEventListener('click', e => {
   e.preventDefault();
-  let selectedAccount = accounts.find(
+  selectedAccount = accounts.find(
     account => account.userName === inputLoginUsername.value,
   );
   if (selectedAccount?.pin === Number(inputLoginPin.value)) {
     containerApp.style.opacity = '100';
     labelWelcome.textContent = `Welcome ${selectedAccount.owner}`;
-    addTransaction(selectedAccount.movements);
-    accountBalance(selectedAccount.movements);
-    accountSummary(selectedAccount);
     inputLoginUsername.value = inputLoginPin.value = '';
+    updateUI(selectedAccount);
   }
+});
+
+//Transfer functinality
+btnTransfer.addEventListener('click', e => {
+  e.preventDefault();
+  const transferTo = accounts.find(
+    account => inputTransferTo.value === account.userName,
+  );
+  const amountTransfered = Number(inputTransferAmount.value);
+  if (
+    amountTransfered > 0 &&
+    transferTo &&
+    selectedAccount.balAmt >= amountTransfered &&
+    transferTo?.userName !== selectedAccount.userName
+  ) {
+    selectedAccount.movements.push(-amountTransfered);
+    transferTo.movements.push(amountTransfered);
+  }
+  updateUI(selectedAccount);
+  inputTransferAmount.value = inputTransferTo.value = '';
 });
