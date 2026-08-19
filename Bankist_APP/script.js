@@ -58,9 +58,12 @@ const inputClosePin = document.querySelector('.form__input--pin');
 // -----------------------------
 
 //Update the transactions
-const addTransaction = function (transaction) {
+const addTransaction = function (transaction, sort = false) {
   containerMovements.innerHTML = '';
-  transaction.forEach((value, i) => {
+  const sTransaction = sort
+    ? transaction.slice().sort((a, b) => a - b)
+    : transaction;
+  sTransaction.forEach((value, i) => {
     const transactionType = value > 0 ? 'deposit' : 'withdrawal';
     const transcationElement = `<div class="movements__row">
           <div class="movements__type movements__type--${transactionType}">${i + 1} ${transactionType}</div>
@@ -201,14 +204,6 @@ let sorted = false;
 // sorting functionaliy
 btnSort.addEventListener('click', e => {
   e.preventDefault();
-  if (sorted === false) {
-    const newMovements = selectedAccount.movements
-      .slice()
-      .sort((a, b) => a - b);
-    addTransaction(newMovements);
-    sorted = true;
-  } else {
-    addTransaction(selectedAccount.movements);
-    sorted = false;
-  }
+  addTransaction(selectedAccount.movements, !sorted);
+  sorted = !sorted;
 });
