@@ -57,7 +57,7 @@ const inputClosePin = document.querySelector('.form__input--pin');
 
 // -----------------------------
 
-//Update the transactions
+//Update the transactions and sort functiality on button click
 const addTransaction = function (transaction, sort = false) {
   containerMovements.innerHTML = '';
   const sTransaction = sort
@@ -68,7 +68,7 @@ const addTransaction = function (transaction, sort = false) {
     const transcationElement = `<div class="movements__row">
           <div class="movements__type movements__type--${transactionType}">${i + 1} ${transactionType}</div>
           <div class="movements__date">3 days ago</div>
-          <div class="movements__value">${value}€</div>
+          <div class="movements__value">${value.toFixed(2)}€</div>
         </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', transcationElement);
   });
@@ -90,7 +90,7 @@ loginAccount(accounts);
 const accountBalance = function (account) {
   labelBalance.innerHTML = '';
   account.balAmt = account.movements.reduce((acc, val) => acc + val, 0);
-  labelBalance.textContent = `${account.balAmt}€`;
+  labelBalance.textContent = `${account.balAmt.toFixed(2)}€`;
 };
 
 //Updates the Deposit,Withdrawl and Intrest fields
@@ -105,8 +105,8 @@ function accountSummary(account) {
     .filter(val => val > 0)
     .map(val => (val * account.interestRate) / 100)
     .reduce((acc, val) => acc + val, 0);
-  labelSumIn.textContent = `${deposit}€`;
-  labelSumOut.textContent = `${Math.abs(withdrawl)}€`;
+  labelSumIn.textContent = `${deposit.toFixed(2)}€`;
+  labelSumOut.textContent = `${Math.abs(withdrawl).toFixed(2)}€`;
   labelSumInterest.textContent = `${intrestAmount.toFixed(2)}€`;
 }
 
@@ -119,7 +119,6 @@ function updateUI(account) {
 
 //Closure/Pointing to current user logged in object
 let selectedAccount = null;
-let currentAcc = null;
 
 ////The login functionality
 btnLogin.addEventListener('click', e => {
@@ -127,7 +126,7 @@ btnLogin.addEventListener('click', e => {
   selectedAccount = accounts.find(
     account => account.userName === inputLoginUsername.value,
   );
-  if (selectedAccount && selectedAccount?.pin === Number(inputLoginPin.value)) {
+  if (selectedAccount && selectedAccount?.pin === +inputLoginPin.value) {
     containerApp.style.opacity = '100';
     labelWelcome.textContent = `Welcome ${selectedAccount.owner}`;
     inputLoginUsername.value = inputLoginPin.value = '';
@@ -144,7 +143,7 @@ btnTransfer.addEventListener('click', e => {
   const transferTo = accounts.find(
     account => inputTransferTo.value === account.userName,
   );
-  const amountTransfered = Number(inputTransferAmount.value);
+  const amountTransfered = +inputTransferAmount.value;
   if (
     amountTransfered > 0 &&
     transferTo &&
@@ -167,7 +166,7 @@ btnTransfer.addEventListener('click', e => {
 btnClose.addEventListener('click', e => {
   e.preventDefault();
   if (
-    selectedAccount?.pin === Number(inputClosePin.value) &&
+    selectedAccount?.pin === +inputClosePin.value &&
     selectedAccount?.userName === inputCloseUsername.value
   ) {
     const indexDelete = accounts.findIndex(
@@ -188,8 +187,11 @@ btnClose.addEventListener('click', e => {
 // Loan request functionality
 btnLoan.addEventListener('click', e => {
   e.preventDefault();
-  const loanAmt = Number(inputLoanAmount.value);
-  if (loanAmt > 0 && currentAcc.movements.some(val => val > 0.1 * loanAmt)) {
+  const loanAmt = Math.round(inputLoanAmount.value);
+  if (
+    loanAmt > 0 &&
+    selectedAccount.movements.some(val => val > 0.1 * loanAmt)
+  ) {
     selectedAccount.movements.push(loanAmt);
     updateUI(selectedAccount);
   } else {
@@ -201,7 +203,7 @@ btnLoan.addEventListener('click', e => {
 });
 
 let sorted = false;
-// sorting functionaliy
+// sorting by click event on a button
 btnSort.addEventListener('click', e => {
   e.preventDefault();
   addTransaction(selectedAccount.movements, !sorted);
