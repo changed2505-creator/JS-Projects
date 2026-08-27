@@ -84,16 +84,17 @@ const inputClosePin = document.querySelector('.form__input--pin');
 // -----------------------------
 
 //Update the transactions and sort functiality on button click
-const addTransaction = function (transaction, sort = false) {
+const addTransaction = function (acc, sort = false) {
   containerMovements.innerHTML = '';
   const sTransaction = sort
-    ? transaction.slice().sort((a, b) => a - b)
-    : transaction;
+    ? acc.movements.slice().sort((a, b) => a - b)
+    : acc.movements;
   sTransaction.forEach((value, i) => {
     const transactionType = value > 0 ? 'deposit' : 'withdrawal';
+    const date = new Date(acc.movementsDates[i]);
     const transcationElement = `<div class="movements__row">
           <div class="movements__type movements__type--${transactionType}">${i + 1} ${transactionType}</div>
-          <div class="movements__date">3 days ago</div>
+          <div class="movements__date">${date.toLocaleDateString('en-GB')}</div>
           <div class="movements__value">${value.toFixed(2)}€</div>
         </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', transcationElement);
@@ -119,6 +120,12 @@ const accountBalance = function (account) {
   labelBalance.textContent = `${account.balAmt.toFixed(2)}€`;
 };
 
+//Display current date and time
+const curDate = function () {
+  const currd = new Date();
+  labelDate.textContent = `${currd.toLocaleDateString('en-GB')} , ${currd.toLocaleTimeString()}`;
+};
+
 //Updates the Deposit,Withdrawl and Intrest fields
 function accountSummary(account) {
   const deposit = account.movements
@@ -138,13 +145,18 @@ function accountSummary(account) {
 
 //Updating UI
 function updateUI(account) {
-  addTransaction(account.movements);
+  curDate();
+  addTransaction(account);
   accountBalance(account);
   accountSummary(account);
 }
 
 //Closure/Pointing to current user logged in object
 let selectedAccount = null;
+
+selectedAccount = account1;
+updateUI(selectedAccount);
+containerApp.style.opacity = '100';
 
 ////The login functionality
 btnLogin.addEventListener('click', e => {
@@ -177,7 +189,9 @@ btnTransfer.addEventListener('click', e => {
     transferTo?.userName !== selectedAccount.userName
   ) {
     selectedAccount.movements.push(-amountTransfered);
+    selectedAccount.movementsDates.push(new Date().toISOString());
     transferTo.movements.push(amountTransfered);
+    transferTo.movementsDates.push(new Date().toISOString());
     alert(`Amount transfer successful🥳`);
   } else if (transferTo?.userName === selectedAccount.userName) {
     alert(`Can't transfer to same account🤣`);
@@ -219,6 +233,7 @@ btnLoan.addEventListener('click', e => {
     selectedAccount.movements.some(val => val > 0.1 * loanAmt)
   ) {
     selectedAccount.movements.push(loanAmt);
+    selectedAccount.movementsDates.push(new Date().toISOString());
     updateUI(selectedAccount);
   } else {
     alert(
@@ -232,6 +247,6 @@ let sorted = false;
 // sorting by click event on a button
 btnSort.addEventListener('click', e => {
   e.preventDefault();
-  addTransaction(selectedAccount.movements, !sorted);
+  addTransaction(selectedAccount, !sorted);
   sorted = !sorted;
 });
