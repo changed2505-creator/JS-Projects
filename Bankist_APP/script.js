@@ -7,9 +7,9 @@ const account1 = {
   pin: 1111,
 
   movementsDates: [
-    '2019-11-18T21:31:17.178Z',
-    '2019-12-23T07:42:02.383Z',
-    '2020-01-28T09:15:04.904Z',
+    '2026-08-31T21:31:17.178Z',
+    '2026-08-30T07:42:02.383Z',
+    '2026-08-27T09:15:04.904Z',
     '2020-04-01T10:17:24.185Z',
     '2020-05-08T14:11:59.604Z',
     '2020-07-26T17:01:17.194Z',
@@ -83,19 +83,37 @@ const inputClosePin = document.querySelector('.form__input--pin');
 
 // -----------------------------
 
+//Function to update Days passed after transaction
+const passedDays = function (date2, date1) {
+  const daysPassed = Math.round((date2 - date1) / (1000 * 60 * 60 * 24));
+  if (daysPassed === 0) return `Today`;
+  if (daysPassed === 1) return `Yesterday`;
+  if (daysPassed <= 7) return `${daysPassed} days ago`;
+  else return date1.toLocaleDateString('en-GB');
+};
+
 //Update the transactions and sort functiality on button click
 const addTransaction = function (acc, sort = false) {
   containerMovements.innerHTML = '';
+  const dateANDmovement = acc.movements.map((mov, i) => ({
+    movement: mov,
+    movementsDate: acc.movementsDates.at(i),
+  }));
+  // console.log(dateANDmovement);
   const sTransaction = sort
-    ? acc.movements.slice().sort((a, b) => a - b)
-    : acc.movements;
-  sTransaction.forEach((value, i) => {
-    const transactionType = value > 0 ? 'deposit' : 'withdrawal';
-    const date = new Date(acc.movementsDates[i]);
+    ? dateANDmovement.sort((a, b) => a.movement - b.movement)
+    : dateANDmovement;
+  // console.log(sTransaction);
+  sTransaction.forEach((combinedValue, i) => {
+    const { movement, movementsDate } = combinedValue;
+    // console.log(movement, movementsDate);
+    const transactionType = movement > 0 ? 'deposit' : 'withdrawal';
+    const date = new Date(movementsDate);
+    const daysPassed = passedDays(new Date(), date);
     const transcationElement = `<div class="movements__row">
           <div class="movements__type movements__type--${transactionType}">${i + 1} ${transactionType}</div>
-          <div class="movements__date">${date.toLocaleDateString('en-GB')}</div>
-          <div class="movements__value">${value.toFixed(2)}€</div>
+          <div class="movements__date">${daysPassed}</div>
+          <div class="movements__value">${movement.toFixed(2)}€</div>
         </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', transcationElement);
   });
